@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { Container, Header, Content, Body, Card, CardItem, Input, Form, Item, Left, Button, Icon, List, ListItem, Right, Title, Badge } from 'native-base'
 import firebase from 'firebase'
 import { TouchableHighlight, TouchableOpacity } from 'react-native-gesture-handler'
+// import TodoStack from '../navigators/TodoStack'
 
 const TodoListScreen = props => {
     const dispatch = useDispatch()
@@ -21,6 +22,15 @@ const TodoListScreen = props => {
             })
         })
     }, [])
+
+    const getList = () => {
+        firebase.database().ref('/').on('value', snapshot => {
+            dispatch({
+                type: 'FILL_TODO',
+                payload: Object.values(snapshot.val())
+            })
+        })
+    }
 
     const onAddTodo = () => {
         var newPostKey = firebase.database().ref().push().key
@@ -50,6 +60,16 @@ const TodoListScreen = props => {
         })
     }
 
+    const completeTodo = (id) => {
+        firebase.database().ref(`/${id}`).update({
+            status: 'finished'
+        });
+        getList()
+    }
+
+    const openDetails = id => {
+        props.navigation.navigate('TodoDetailScreen', { id })
+    }
 
     return (
         <Container>
@@ -79,16 +99,24 @@ const TodoListScreen = props => {
                     return (
                     <ListItem>
                         <Left>
-                            <Button info style={{ padding: 10 }}>
-                                <Text style={{ color: 'white'}}>{item.status}</Text>
-                            </Button> 
+                            { 
+                                item.status === 'unfinished' 
+                                ?
+                                <Button info style={{ padding: 10 }}>
+                                    <Text style={{ color: 'white'}} onPress={() => completeTodo(item.id , item.status)} >{item.status}</Text>
+                                </Button>
+                                : 
+                                <Button success style={{ padding: 10 }}>
+                                    <Text style={{ color: 'white'}}>{item.status}</Text>
+                                </Button>
+                            }
                         </Left>
                         <Body>
                             <Text>{item.todo}</Text>
                         </Body>
                         <Right style={{ width: '100%'}}>
                             <TouchableOpacity>
-                                <Text style={{ color: 'lightblue'}}>Open</Text>
+                                <Text style={{ color: 'lightblue'}} onPress={() => openDetails(item.id)}>Open</Text>
                             </TouchableOpacity>
                         </Right>
                     </ListItem>
