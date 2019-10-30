@@ -62,7 +62,8 @@ const TodoListScreen = props => {
 
     const completeTodo = (id) => {
         firebase.database().ref(`/${id}`).update({
-            status: 'finished'
+            status: 'finished',
+            dateCompleted: new Date().toLocaleDateString('id-ID')
         });
         getList()
     }
